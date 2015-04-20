@@ -118,13 +118,34 @@ namespace Flickr_Downloader
 				Console.WriteLine("Not a valid flickr url, knob!");
 				return;
 			}
-			if(!Directory.Exists(args[1]))
-			{
-				Console.WriteLine("Can't find the destination folder, arseface!");
-				return;
-			}
 
 			destination = args[1];
+
+			if (!Directory.Exists(destination))
+			{
+				if (Path.IsPathRooted(destination))
+				{
+					Console.WriteLine("Seems like I have to create the destination folder for you, you lazy bum!");
+					try
+					{
+						Directory.CreateDirectory(destination);
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine("Couldn't create the destination folder, you twat!");
+						Console.WriteLine(ex.Message);
+						return;
+					}					
+				}
+				else
+				{
+					Console.WriteLine("Not a valid destination folder, arseface!");
+					return;
+				}
+				
+			}
+
+			
 			username = url.Groups["name"].Value;
 
 			var rImageID = new Regex("id=\"photo_img_(?<id>\\d*)\"");
