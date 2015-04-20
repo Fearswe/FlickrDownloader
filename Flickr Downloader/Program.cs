@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -178,11 +179,15 @@ namespace Flickr_Downloader
 			}
 			else
 			{
-				Console.WriteLine("Found nothing to process...");
+				Console.WriteLine("Found nothing to process!\nPress any key to continue...");
+				Console.ReadKey();
 			}
 
-			Console.WriteLine("Press any key to continue...");
-			Console.ReadKey();
+			Console.WriteLine("Open destination folder? [Y/N]");
+			if (Console.ReadKey().Key == ConsoleKey.Y)
+			{
+				Process.Start(destination);
+			}
 		}
 	}
 }
