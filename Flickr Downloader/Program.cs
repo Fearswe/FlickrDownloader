@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
 using System.Threading;
 
 namespace Flickr_Downloader
@@ -16,6 +11,7 @@ namespace Flickr_Downloader
 	{
 		public String name;
 		public String url;
+
 		public ImageObject(String name, String url)
 		{
 			this.name = name;
@@ -23,7 +19,7 @@ namespace Flickr_Downloader
 		}
 	}
 
-	class Program
+	internal class Program
 	{
 		static public void ProcessPage(Object workerNumber)
 		{
@@ -66,7 +62,7 @@ namespace Flickr_Downloader
 		{
 			while (downloadQueue.Count > 0 || !processCountdown.IsSet)
 			{
-				if(downloadQueue.Count == 0)
+				if (downloadQueue.Count == 0)
 				{
 					Thread.Sleep(100);
 					continue;
@@ -80,40 +76,38 @@ namespace Flickr_Downloader
 					}
 
 					var webClient = new WebClient();
-					webClient.DownloadFile(image.url, Path.Combine(destination, image.name));	
+					webClient.DownloadFile(image.url, Path.Combine(destination, image.name));
 				}
 				catch (Exception ex)
 				{
 					Console.WriteLine(ex.Message);
 				}
-
-				
 			}
 			Console.WriteLine("Downloader number {0} is done.", workerNumber);
 			downloadCountdown.Signal();
-		}		 
+		}
 
-		static Queue<ImageObject> downloadQueue;
-		static Queue<String> processQueue;
-		static String username;
-		static String destination;
-		static CountdownEvent downloadCountdown;
-		static CountdownEvent processCountdown;
+		private static Queue<ImageObject> downloadQueue;
+		private static Queue<String> processQueue;
+		private static String username;
+		private static String destination;
+		private static CountdownEvent downloadCountdown;
+		private static CountdownEvent processCountdown;
 
-		static int threadCount = Environment.ProcessorCount > 1 ? Environment.ProcessorCount : 2;
+		private static int threadCount = Environment.ProcessorCount > 1 ? Environment.ProcessorCount : 2;
 
-		static void Main(String[] args)
+		private static void Main(String[] args)
 		{
-			if(args.Length < 2)
+			if (args.Length < 2)
 			{
 				Console.WriteLine("I need a url and a destination, wanker!");
 				return;
 			}
 
 			var rUrl = new Regex(@"^https:\/\/www\.flickr\.com\/photos\/(?<name>\w*)\/sets\/\d*\/?$");
-			
+
 			var url = rUrl.Match(args[0]);
-			if(!url.Success)
+			if (!url.Success)
 			{
 				Console.WriteLine("Not a valid flickr url, knob!");
 				return;
@@ -123,29 +117,19 @@ namespace Flickr_Downloader
 
 			if (!Directory.Exists(destination))
 			{
-				if (Path.IsPathRooted(destination))
+				try
 				{
-					Console.WriteLine("Seems like I have to create the destination folder for you, you lazy bum!");
-					try
-					{
-						Directory.CreateDirectory(destination);
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine("Couldn't create the destination folder, you twat!");
-						Console.WriteLine(ex.Message);
-						return;
-					}					
+					Directory.CreateDirectory(destination);
+					Console.WriteLine("Seems like I had to create the destination folder for you, you lazy bum!");
 				}
-				else
+				catch (Exception ex)
 				{
-					Console.WriteLine("Not a valid destination folder, arseface!");
+					Console.WriteLine("Couldn't create the destination folder because it's probably not a valid path, you twat!");
+					Console.WriteLine(ex.Message);
 					return;
 				}
-				
 			}
 
-			
 			username = url.Groups["name"].Value;
 
 			var rImageID = new Regex("id=\"photo_img_(?<id>\\d*)\"");
@@ -154,7 +138,7 @@ namespace Flickr_Downloader
 			processCountdown = new CountdownEvent(threadCount);
 
 			processQueue = new Queue<String>();
-			downloadQueue = new Queue<ImageObject>();			
+			downloadQueue = new Queue<ImageObject>();
 
 			for (int i = 1; i < 50; i++)
 			{
@@ -179,6 +163,7 @@ namespace Flickr_Downloader
 					Console.WriteLine(ex.Message);
 				}
 			}
+
 			if (processQueue.Count > 0)
 			{
 				Console.WriteLine("Starting the threads");
